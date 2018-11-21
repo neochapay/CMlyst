@@ -13,10 +13,17 @@ Create an INI file like cmlyst.conf with:
     [Cutelyst]
     DataLocation = /var/tmp/my_site_data
     production = true
+    dbDriver = sqlite
 
 Where:
  * DataLocation is the place where images uploads and sqlite database will be placed
  * production when true will preload the theme templates, which is a lot faster but if you are customizing the theme you will need to reload the process
+ * dbDriver is SQL driver may be mysql or sqlite
+ * dbServerHost host of data base (only for mysql)
+ * dbServerBaseName name of data base (only for mysql)
+ * dbServerUser user of data base (only for mysql)
+ * dbServerPassword password of user database (only for mysql)
+ * dbServerPort port of database (only for mysql)
  
 ## Running
 You can run it with cutelyst-wsgi or uWSGI, both have similar command line options, and you should look at their documentation to know their options, the simplest one:

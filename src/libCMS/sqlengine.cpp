@@ -31,20 +31,56 @@ SqlEngine::SqlEngine(QObject *parent) : Engine(parent)
 
 bool SqlEngine::init(const QHash<QString, QString> &settings)
 {
+    QSqlDatabase db;
+    QString dbPath;
+    bool create = false;
+
     QString root = settings.value(QStringLiteral("root"));
+
+    QString dbDriver = settings.value(QStringLiteral("dbDriver"));
+    QString dbServerHost = settings.value(QStringLiteral("dbServerHost"));
+    QString dbServerUser = settings.value(QStringLiteral("dbServerUser"));
+    QString dbServerPassword = settings.value(QStringLiteral("dbServerPassword"));
+    QString dbServerBaseName = settings.value(QStringLiteral("dbServerBaseName"));
+    int dbServerPort = settings.value(QStringLiteral("dbServerPort")).toInt();
+
     if (root.isEmpty()) {
         root = QDir::currentPath();
     }
 
-    const QString dbPath = root + QLatin1String("/cmlyst.sqlite");
-    bool create = !QFile::exists(dbPath);
+    if(dbDriver == QString::fromUtf8("sqlite")) {
+/*Default db is sqlite*/
+        dbPath = root + QLatin1String("/cmlyst.sqlite");
+        create = !QFile::exists(dbPath);
 
-    if (QSqlDatabase::contains(QStringLiteral("cmlyst"))) {
-        return true;
+        if (QSqlDatabase::contains(QStringLiteral("cmlyst"))) {
+            return true;
+        }
+
+        db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), Cutelyst::Sql::databaseNameThread(QStringLiteral("cmlyst")));
+        db.setDatabaseName(dbPath);
+
+
+    } else if (dbDriver == QString::fromUtf8("mysql")) {
+/*Experemental support of mysql/mariadb*/
+        if(dbServerHost.isEmpty() || dbServerUser.isEmpty() || dbServerBaseName.isEmpty()) {
+            qCritical() << "Wrong db config";
+            return false;
+        }
+
+        dbPath = dbServerUser+QLatin1String("@")+dbServerHost;
+
+        db = QSqlDatabase::addDatabase(QString::fromUtf8("QMYSQL"));
+        db.setHostName(dbServerHost);
+        db.setDatabaseName(dbServerBaseName);
+        db.setUserName(dbServerUser);
+        db.setPassword(dbServerPassword);
+        db.setPort(dbServerPort);
+    } else {
+        qCritical() << "Unknow db driver! Support only sqlite and mysql";
+        return false;
     }
 
-    auto db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), Cutelyst::Sql::databaseNameThread(QStringLiteral("cmlyst")));
-    db.setDatabaseName(dbPath);
     if (db.open()) {
         qDebug() << "Database is open:" << dbPath << db.connectionName();
         if (create) {

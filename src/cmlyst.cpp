@@ -127,10 +127,22 @@ bool CMlyst::init()
 bool CMlyst::postFork()
 {
     QDir dataDir = config(QStringLiteral("DataLocation")).toString();
+    const QString dbDriver = config(QStringLiteral("dbDriver"), QStringLiteral("sqlite")).toString();
+    QString dbServerHost = config(QStringLiteral("dbHost")).toString();
+    QString dbServerBaseName = config(QStringLiteral("dbServerBaseName")).toString();
+    QString dbServerUser = config(QStringLiteral("dbUser")).toString();
+    QString dbServerPassword = config(QStringLiteral("dbServerPassword")).toString();
+    QString dbServerPort = config(QStringLiteral("dbServerDb"), QStringLiteral("3306")).toString();
 
     auto engine = new CMS::SqlEngine(this);
     engine->init({
-                     {QStringLiteral("root"), dataDir.absolutePath()}
+                     {QStringLiteral("root"), dataDir.absolutePath()},
+                     {QStringLiteral("dbDriver"), dbDriver},
+                     {QStringLiteral("dbServerHost"), dbServerHost},
+                     {QStringLiteral("dbServerBaseName"), dbServerBaseName},
+                     {QStringLiteral("dbServerUser"), dbServerUser},
+                     {QStringLiteral("dbServerPassword"), dbServerPassword},
+                     {QStringLiteral("dbServerPort"), dbServerPort}
                  });
 
     Q_FOREACH (Controller *controller, controllers()) {
